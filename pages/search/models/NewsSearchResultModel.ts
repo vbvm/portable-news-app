@@ -1,8 +1,10 @@
 export type NewsSearchResultModelData = {
+  id: string;
   title: string;
   link: string;
   publicationDate: string;
   section: string;
+  source: string;
 }
 
 export default class NewsSearchResultModel {
@@ -14,6 +16,8 @@ export default class NewsSearchResultModel {
   constructor(data: NewsSearchResultModelData) {
     this.data = data;
   }
+
+  getUniqueId() : string { return this.data.source + '_' + this.data.id; }
 
   toString(): string {
     return JSON.stringify(

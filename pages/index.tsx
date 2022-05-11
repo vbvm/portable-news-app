@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useState } from 'react'
 import styles from '../styles/Home.module.css'
+import { BookmarkManager } from './bookmark/BookmarkManager';
 import { AggregatedNewsSearchResults } from './search/common/AggregatedNewsSearchResults';
 import { NewsSearchResultSet } from './search/common/NewsSearchResultSet';
 import NewsSearchResultModel from './search/models/NewsSearchResultModel';
@@ -11,7 +12,7 @@ const pageStyles = {
   },
   searchResult: {
     backgroundColor: 'rgb(240, 248, 255)',
-    marginLeft:'25px',
+    marginLeft: '25px',
     paddingLeft: '5px'
   },
   searchResultSection: {
@@ -25,15 +26,18 @@ const pageStyles = {
     overflowY: 'scroll'
   },
   separator: {
-    width:'100%',
+    width: '100%',
     height: '1px',
     backgroundColor: 'gray',
-    marginTop:'25px',
+    marginTop: '25px',
     marginBottom: '15px'
   }
 };
 
+const bookmarkManager = new BookmarkManager();
+
 export default function Home() {
+
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(new AggregatedNewsSearchResults());
   const doSearch = () => {
@@ -50,8 +54,10 @@ export default function Home() {
   };
 
   var sections = searchResults.getGroupedBySection();
+  var bookmarks = bookmarkManager.bookmarks;
 
   var hasSearchResults = !searchResults.isEmpty();
+  var hasBookmarks = !bookmarkManager.isEmpty();
   return (
     <div className={styles.container}>
       <Head>
@@ -93,7 +99,7 @@ export default function Home() {
         {
           hasSearchResults &&
           <>
-          <div style={pageStyles.separator}></div>
+            <div style={pageStyles.separator}></div>
             <h3>Search Results</h3>
             <div style={pageStyles.searchResultsContainer}>
               {
@@ -104,6 +110,11 @@ export default function Home() {
                   const innerResults = searchResultItemsInThisSection.map(function (searchResult: NewsSearchResultModel, i) {
                     return (
                       <div key={i} style={pageStyles.searchResult}>
+                        <button onClick={e => {
+                          bookmarkManager.addBookmark(searchResult)
+                        }}>
+                          Bookmark
+                        </button>
                         <p>{searchResult.data.title}</p>
                         <p>{searchResult.data.publicationDate}</p>
                         <p>{searchResult.data.link}</p>
@@ -122,7 +133,34 @@ export default function Home() {
             </div>
           </>
         }
+        {
+          hasBookmarks &&
+          <>
+            <div style={pageStyles.separator}></div>
+            <h3>Bookmarks</h3>
+            <div style={pageStyles.searchResultsContainer}>
+              {
+                Object.keys(bookmarks).map(function (itemId: string) {
+                  const searchResult: NewsSearchResultModel
+                    = bookmarks[itemId];
 
+                  return (
+                    <div key={itemId} style={pageStyles.searchResult}>
+                      <button onClick={e => {
+                        bookmarkManager.removeBookmark(searchResult)
+                      }}>
+                        Remove Bookmark
+                      </button>
+                      <p>{searchResult.data.title}</p>
+                      <p>{searchResult.data.publicationDate}</p>
+                      <p>{searchResult.data.link}</p>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </>
+        }
 
       </main>
 
